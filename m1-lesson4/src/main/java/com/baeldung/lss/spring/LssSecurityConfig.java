@@ -13,7 +13,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class LssSecurityConfig {
 
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
     public LssSecurityConfig(PasswordEncoder passwordEncoder) {
         super();
@@ -27,7 +27,7 @@ public class LssSecurityConfig {
         auth.
             inMemoryAuthentication().passwordEncoder(passwordEncoder).
             withUser("user").password(passwordEncoder.encode("pass")).
-            roles("USER");
+            roles("ADMIN");
     } // @formatter:on
 
     @Bean
@@ -38,7 +38,9 @@ public class LssSecurityConfig {
                 .anyRequest().authenticated()
         
         .and()
-        .formLogin();
+        .formLogin()
+            .loginPage("/login").permitAll()
+            .loginProcessingUrl("/doLogin");
         return http.build();
     } // @formatter:on
 

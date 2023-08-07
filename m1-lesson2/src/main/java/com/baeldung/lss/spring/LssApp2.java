@@ -11,7 +11,7 @@ import com.baeldung.lss.persistence.UserRepository;
 import com.baeldung.lss.web.model.User;
 
 @SpringBootApplication
-@ComponentScan("com.baeldung.lss.web")
+@ComponentScan("com.baeldung.lss")
 public class LssApp2 {
 
     @Bean
