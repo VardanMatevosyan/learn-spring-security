@@ -8,6 +8,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @EnableWebSecurity
 @Configuration
@@ -40,7 +41,10 @@ public class LssSecurityConfig {
         .formLogin().
             loginPage("/login").permitAll().
             loginProcessingUrl("/doLogin")
-            
+
+            .and()
+            .logout().permitAll().logoutRequestMatcher(new AntPathRequestMatcher("/doLogout", "GET"))
+
         .and()
         .csrf().disable();
         return http.build();

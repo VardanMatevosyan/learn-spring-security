@@ -1,6 +1,10 @@
 package com.baeldung.lss.web.controller;
 
+import com.baeldung.lss.persistence.UserRepository;
+import com.baeldung.lss.web.model.User;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -9,11 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import com.baeldung.lss.persistence.UserRepository;
-import com.baeldung.lss.web.model.User;
-
-import jakarta.validation.Valid;
 
 @Controller
 @RequestMapping("/")
@@ -45,7 +44,8 @@ public class UserController {
     }
 
     @RequestMapping(method = RequestMethod.POST)
-    public ModelAndView create(@Valid User user, BindingResult result, RedirectAttributes redirect) {
+    public ModelAndView create(@Valid User user, BindingResult result, RedirectAttributes redirect, @AuthenticationPrincipal
+        org.springframework.security.core.userdetails.User userssss) {
         if (result.hasErrors()) {
             return new ModelAndView("users/form", "formErrors", result.getAllErrors());
         }
@@ -60,7 +60,8 @@ public class UserController {
     }
 
     @RequestMapping(value = "delete/{id}")
-    public ModelAndView delete(@PathVariable("id") Long id) {
+    public ModelAndView delete(@PathVariable("id") Long id, @AuthenticationPrincipal
+        org.springframework.security.core.userdetails.User user) {
         this.userRepository.deleteUser(id);
         return new ModelAndView("redirect:/");
     }

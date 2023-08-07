@@ -14,7 +14,7 @@ import com.baeldung.lss.persistence.UserRepository;
 import com.baeldung.lss.web.model.User;
 
 @SpringBootApplication(exclude = { SecurityAutoConfiguration.class })
-@ComponentScan("com.baeldung.lss.web")
+@ComponentScan("com.baeldung.lss")
 public class LssApp4 {
 
     @Bean
