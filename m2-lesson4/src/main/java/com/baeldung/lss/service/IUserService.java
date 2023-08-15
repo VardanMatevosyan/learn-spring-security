@@ -1,5 +1,6 @@
 package com.baeldung.lss.service;
 
+import com.baeldung.lss.model.PasswordResetToken;
 import com.baeldung.lss.model.User;
 import com.baeldung.lss.model.VerificationToken;
 import com.baeldung.lss.validation.EmailExistsException;
@@ -17,4 +18,10 @@ public interface IUserService {
     VerificationToken getVerificationToken(String token);
 
     void saveRegisteredUser(User user);
+
+  void createPasswordResetTokenForUser(User user, String token);
+
+    void changeUserPassword(User user, String password);
+
+    PasswordResetToken getPasswordResetToken(String token);
 }

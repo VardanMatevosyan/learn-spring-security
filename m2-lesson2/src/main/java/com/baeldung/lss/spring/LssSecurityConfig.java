@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -13,21 +14,28 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class LssSecurityConfig {
 
-    private PasswordEncoder passwordEncoder;
-
-    public LssSecurityConfig(PasswordEncoder passwordEncoder) {
-        super();
-        this.passwordEncoder = passwordEncoder;
-    }
-
-    //
+    private final PasswordEncoder passwordEncoder;
+    private final UserDetailsService userDetailsService;
 
     @Autowired
-    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception { // @formatter:off 
+    public LssSecurityConfig(PasswordEncoder passwordEncoder,
+                             UserDetailsService userDetailsService) {
+        this.passwordEncoder = passwordEncoder;
+        this.userDetailsService = userDetailsService;
+    }
+
+//
+
+    @Autowired
+    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception { // @formatter:off
+        // remove in memory with only one source of data with one user
+        // that not able to find other users to authenticate the user by setting it to the
+        // security context inside the security context holder object
+        // by setting own user detail service and providing other source of users to look at
+        // spring security able to find all the users we need according to the way we're
+        // finding the user and providing spring security's user object with credential and authorities info.
         auth.
-            inMemoryAuthentication().passwordEncoder(passwordEncoder).
-            withUser("user").password(passwordEncoder.encode("pass")).
-            roles("USER");
+            userDetailsService(userDetailsService).passwordEncoder(passwordEncoder);
     } // @formatter:on
 
     @Bean

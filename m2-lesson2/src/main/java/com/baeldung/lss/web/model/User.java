@@ -1,5 +1,6 @@
 package com.baeldung.lss.web.model;
 
+import jakarta.persistence.Table;
 import java.util.Calendar;
 
 import com.baeldung.lss.validation.PasswordMatches;
@@ -13,6 +14,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 
 @Entity
+@Table(name = "user")
 @PasswordMatches
 public class User {
 

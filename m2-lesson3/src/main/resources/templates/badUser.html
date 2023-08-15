@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+  <title>Registration Page</title>
+
+  <link type="text/css"
+        href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/css/bootstrap.min.css"
+        rel="stylesheet"/>
+
+</head>
+<body>
+  <h1 th:utext="${message.getModel().get('message')}">Error Message</h1>
+  <a th:href=" @{/signup}">signup</a>
+</body>
+</html>

@@ -18,6 +18,13 @@
 
     <dependencies>
 
+        <!-- email -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+<!--            <version>3.1.2</version>-->
+        </dependency>
+
         <!-- web -->
 
         <dependency>

@@ -14,28 +14,28 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class LssSecurityConfig {
 
-    private PasswordEncoder passwordEncoder;
+  private PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private UserDetailsService userDetailsService;
+  @Autowired
+  private UserDetailsService userDetailsService;
 
-    public LssSecurityConfig(PasswordEncoder passwordEncoder) {
-        super();
-        this.passwordEncoder = passwordEncoder;
-    }
+  public LssSecurityConfig(PasswordEncoder passwordEncoder) {
+    super();
+    this.passwordEncoder = passwordEncoder;
+  }
 
-    //
+  //
 
-    @Autowired
-    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception { // @formatter:off
+  @Autowired
+  public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception { // @formatter:off
         auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder);
     } // @formatter:on
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {// @formatter:off
+  @Bean
+  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {// @formatter:off
         http
         .authorizeHttpRequests()
-                .requestMatchers("/signup", "/user/register", "/registrationConfirm*", "badUser*").permitAll()
+                .requestMatchers(getRequestMatchers()).permitAll()
                 .anyRequest().authenticated()
 
         .and()
@@ -50,4 +50,16 @@ public class LssSecurityConfig {
         .csrf().disable();
         return http.build();
     } // @formatter:on
+
+  private static String[] getRequestMatchers() {
+    return new String[]{
+        "/signup",
+        "/user/register",
+        "/registrationConfirm*",
+        "badUser*",
+        "/forgotPassword*",
+        "/user/resetPassword",
+        "/user/changePassword",
+        "/user/savePassword"};
+  }
 }

@@ -1,7 +1,11 @@
 package com.baeldung.lss.web.controller;
 
+import com.baeldung.lss.model.PasswordResetToken;
+import com.baeldung.lss.registration.event.OnPasswordResetTokenEvent;
 import java.util.Calendar;
 
+import java.util.Map;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Controller;
@@ -9,7 +13,9 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -76,5 +82,61 @@ class RegistrationController {
         redirectAttributes.addFlashAttribute("message", "Your account verified successfully");
         return new ModelAndView("redirect:/login");
     }
+
+    @RequestMapping(value = "/user/resetPassword", method = RequestMethod.POST)
+    @ResponseBody
+    public ModelAndView resetPassword(HttpServletRequest request,
+                                      @RequestParam("email") String userEmail,
+                                      RedirectAttributes redirectAttributes) {
+        User user = userService.findUserByEmail(userEmail);
+        if (user != null) {
+            String token = UUID.randomUUID().toString();
+            userService.createPasswordResetTokenForUser(user, token);
+            sendResetEmail(request, user, token);
+        }
+        redirectAttributes.addFlashAttribute(
+            "message", "You should receive an Password Reset Email shortly");
+        return new ModelAndView("redirect:/login");
+    }
+
+    private void sendResetEmail(HttpServletRequest request, User user, String token) {
+        String appUrl = "http://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath();
+        eventPublisher.publishEvent(new OnPasswordResetTokenEvent(user, appUrl, token));
+    }
+
+
+    @RequestMapping(value = "/user/changePassword", method = RequestMethod.GET)
+    public ModelAndView showChangePasswordPage(@RequestParam("token") String token) {
+        PasswordResetToken passwordResetToken = userService.getPasswordResetToken(token);
+        ModelAndView modelAndView = new ModelAndView("resetPassword");
+        modelAndView.addObject("token", passwordResetToken.getToken());
+        return modelAndView;
+    }
+
+    @RequestMapping(value = "/user/savePassword", method = RequestMethod.POST)
+    @ResponseBody
+    public ModelAndView savePassword(@RequestParam("password") String password,
+                                     @RequestParam("passwordConfirmation") String passwordConfirmation,
+                                     @RequestParam("token") final String token,
+                                     final RedirectAttributes redirectAttributes) {
+        if (!password.equals(passwordConfirmation)) {
+            return new ModelAndView(
+                "resetPassword", Map.of("errorMessage", "Passwords do not match"));
+        }
+        final PasswordResetToken passwordResetToken = userService.getPasswordResetToken(token);
+        if (passwordResetToken == null) {
+            redirectAttributes.addFlashAttribute("message", "Invalid token");
+        } else {
+            final User user = passwordResetToken.getUser();
+            if (user == null) {
+                redirectAttributes.addFlashAttribute("message", "Unknown user");
+            } else {
+                userService.changeUserPassword(user, password);
+                redirectAttributes.addFlashAttribute("message", "Password reset successfully");
+            }
+        }
+        return new ModelAndView("redirect:/login");
+    }
+
 
 }

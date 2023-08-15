@@ -1,5 +1,6 @@
 package com.baeldung.lss.model;
 
+import com.baeldung.lss.validation.ValidPassword;
 import java.util.Calendar;
 
 import com.baeldung.lss.validation.PasswordMatches;
@@ -28,6 +29,7 @@ public class User {
     @NotEmpty(message = "Email is required.")
     private String email;
 
+    @ValidPassword
     @NotEmpty(message = "Password is required.")
     private String password;
 

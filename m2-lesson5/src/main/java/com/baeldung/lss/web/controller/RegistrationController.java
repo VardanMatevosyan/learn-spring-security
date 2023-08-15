@@ -1,13 +1,21 @@
 package com.baeldung.lss.web.controller;
 
+import com.baeldung.lss.model.SecurityQuestion;
+import com.baeldung.lss.model.SecurityQuestionDefinition;
+import com.baeldung.lss.persistence.SecurityQuestionDefinitionRepository;
+import com.baeldung.lss.persistence.SecurityQuestionRepository;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.Environment;
+import org.springframework.data.domain.Example;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -46,22 +54,40 @@ class RegistrationController {
     private UserDetailsService userDetailsService;
 
     @Autowired
+    private SecurityQuestionDefinitionRepository securityQuestionDefinitionRepository;
+
+    @Autowired
+    private SecurityQuestionRepository securityQuestionRepository;
+
+    @Autowired
     private Environment env;
 
     // registration
 
     @RequestMapping(value = "signup")
     public ModelAndView registrationForm() {
-        return new ModelAndView("registrationPage", "user", new User());
+        Map<String, Object> model = new HashMap<>();
+        model.put("user", new User());
+        model.put("questions", securityQuestionDefinitionRepository.findAll());
+        return new ModelAndView("registrationPage", model);
     }
 
     @RequestMapping(value = "user/register")
-    public ModelAndView registerUser(@Valid final User user, final BindingResult result, final HttpServletRequest request, final RedirectAttributes redirectAttributes) {
+    public ModelAndView registerUser(@Valid final User user,
+                                     @RequestParam final Long questionId,
+                                     @RequestParam final String answer,
+                                     final BindingResult result,
+                                     final HttpServletRequest request,
+                                     final RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
             return new ModelAndView("registrationPage", "user", user);
         }
         try {
             final User registered = userService.registerNewUser(user);
+
+            SecurityQuestionDefinition securityQuestionDefinition =
+                securityQuestionDefinitionRepository.findById(questionId).orElseThrow();
+            securityQuestionRepository.save(new SecurityQuestion(user, securityQuestionDefinition, answer));
 
             final String appUrl = "http://" + request.getServerName() + ":" + request.getServerPort() + request.getContextPath();
             eventPublisher.publishEvent(new OnRegistrationCompleteEvent(registered, appUrl));
@@ -117,7 +143,10 @@ class RegistrationController {
     }
 
     @RequestMapping(value = "/user/changePassword", method = RequestMethod.GET)
-    public ModelAndView showChangePasswordPage(@RequestParam("id") final long id, @RequestParam("token") final String token, final RedirectAttributes redirectAttributes) {
+    public ModelAndView showChangePasswordPage(
+        @RequestParam("id") final long id,
+        @RequestParam("token") final String token,
+        final RedirectAttributes redirectAttributes) {
         final PasswordResetToken passToken = userService.getPasswordResetToken(token);
         if (passToken == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Invalid password reset token");
@@ -130,27 +159,45 @@ class RegistrationController {
         }
 
         final Calendar cal = Calendar.getInstance();
-        if ((passToken.getExpiryDate()
-            .getTime()
-            - cal.getTime()
-                .getTime()) <= 0) {
+        if ((passToken.getExpiryDate().getTime() - cal.getTime().getTime()) <= 0) {
             redirectAttributes.addFlashAttribute("errorMessage", "Your password reset token has expired");
             return new ModelAndView("redirect:/login");
         }
 
         final ModelAndView view = new ModelAndView("resetPassword");
         view.addObject("token", token);
+        view.addObject("questions", securityQuestionDefinitionRepository.findAll());
         return view;
     }
 
     @RequestMapping(value = "/user/savePassword", method = RequestMethod.POST)
     @ResponseBody
-    public ModelAndView savePassword(@RequestParam("password") final String password, @RequestParam("passwordConfirmation") final String passwordConfirmation, @RequestParam("token") final String token, final RedirectAttributes redirectAttributes) {
+    public ModelAndView savePassword(@RequestParam("password") final String password,
+                                     @RequestParam("passwordConfirmation") final String passwordConfirmation,
+                                     @RequestParam("token") final String token,
+                                     @RequestParam("questionId") final Long questionId,
+                                     @RequestParam("answer") final String answer,
+                                     final RedirectAttributes redirectAttributes) {
 
         if (!password.equals(passwordConfirmation)) {
             return new ModelAndView("resetPassword", ImmutableMap.of("errorMessage", "Passwords do not match"));
         }
         final PasswordResetToken p = userService.getPasswordResetToken(token);
+
+        if (securityQuestionRepository.findByUserIdAndAnswer(p.getUser().getId(), answer) == null) {
+            final Map<String, Object> model = new HashMap<>();
+            model.put("errorMessage", "Answer to security question is incorrect");
+            model.put("questions", securityQuestionDefinitionRepository.findAll());
+            return new ModelAndView("resetPassword", model);
+        }
+
+        if (securityQuestionRepository.findBySecurityQuestionDefinitionIdAndUserIdAndAnswer(questionId, p.getUser().getId(), answer) == null) {
+            final Map<String, Object> model = new HashMap<>();
+            model.put("errorMessage", "Answer to security question is incorrect");
+            model.put("questions", securityQuestionDefinitionRepository.findAll());
+            return new ModelAndView("resetPassword", model);
+        }
+
         if (p == null) {
             redirectAttributes.addFlashAttribute("message", "Invalid token");
         } else {
