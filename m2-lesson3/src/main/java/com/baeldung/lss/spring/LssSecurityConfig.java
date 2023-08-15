@@ -36,7 +36,7 @@ public class LssSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {// @formatter:off
         http
         .authorizeHttpRequests()
-                .requestMatchers("/signup", "/user/register").permitAll()
+                .requestMatchers("/signup", "/user/register", "/registrationConfirmation", "/badUser").permitAll()
                 .anyRequest().authenticated()
 
         .and()

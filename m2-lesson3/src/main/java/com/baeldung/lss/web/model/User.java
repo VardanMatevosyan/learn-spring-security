@@ -1,5 +1,6 @@
 package com.baeldung.lss.web.model;
 
+import jakarta.persistence.Column;
 import java.util.Calendar;
 
 import com.baeldung.lss.validation.PasswordMatches;
@@ -15,6 +16,10 @@ import jakarta.validation.constraints.NotEmpty;
 @Entity
 @PasswordMatches
 public class User {
+
+    public User() {
+        setEnabled(false);
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,6 +37,9 @@ public class User {
     private String passwordConfirmation;
 
     private Calendar created = Calendar.getInstance();
+
+    @Column(name = "enabled")
+    private Boolean enabled;
 
     public Long getId() {
         return this.id;
@@ -71,6 +79,14 @@ public class User {
 
     public void setPasswordConfirmation(final String passwordConfirmation) {
         this.passwordConfirmation = passwordConfirmation;
+    }
+
+    public Boolean getEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(Boolean enabled) {
+        this.enabled = enabled;
     }
 
     @Override

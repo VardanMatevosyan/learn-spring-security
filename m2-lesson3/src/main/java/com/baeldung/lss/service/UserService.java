@@ -1,5 +1,9 @@
 package com.baeldung.lss.service;
 
+import com.baeldung.lss.persistence.VerificationTokenRepository;
+import com.baeldung.lss.web.model.VerificationToken;
+import java.time.Instant;
+import java.util.Date;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,6 +20,9 @@ class UserService implements IUserService {
 
     @Autowired
     private UserRepository repository;
+
+    @Autowired
+    private VerificationTokenRepository verificationTokenRepository;
     
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -46,5 +53,23 @@ class UserService implements IUserService {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
         return repository.save(user);
+    }
+
+    @Override
+    public void createVerificationToken(User user, String token) {
+        VerificationToken verificationToken = new VerificationToken();
+        verificationToken.setToken(token);
+        verificationToken.setUser(user);
+        verificationTokenRepository.save(verificationToken);
+    }
+
+    @Override
+    public VerificationToken getVerificationToken(String token) {
+        return verificationTokenRepository.findByToken(token);
+    }
+
+    @Override
+    public void saveRegisteredUser(User user) {
+        repository.save(user);
     }
 }
