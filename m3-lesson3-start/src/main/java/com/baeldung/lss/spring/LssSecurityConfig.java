@@ -1,5 +1,6 @@
 package com.baeldung.lss.spring;
 
+import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,6 +10,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 
 @EnableWebSecurity
 @Configuration
@@ -18,6 +21,9 @@ public class LssSecurityConfig {
 
     @Autowired
     private UserDetailsService userDetailsService;
+
+    @Autowired
+    private DataSource dataSource;
 
     public LssSecurityConfig(PasswordEncoder passwordEncoder) {
         super();
@@ -53,8 +59,7 @@ public class LssSecurityConfig {
 
         .and()
         .rememberMe()
-            .key("lssAppKey")
-            .tokenValiditySeconds(604800) // 1 week = 604800
+            .tokenRepository(persistentTokenRepository())
 
         .and()
         .logout().permitAll().logoutUrl("/logout")
@@ -63,5 +68,12 @@ public class LssSecurityConfig {
         .csrf().disable();
         return http.build();
     } // @formatter:on
+
+    @Bean
+    public PersistentTokenRepository persistentTokenRepository() {
+        JdbcTokenRepositoryImpl jdbcTokenRepository = new JdbcTokenRepositoryImpl();
+        jdbcTokenRepository.setDataSource(dataSource);
+        return jdbcTokenRepository;
+    }
 
 }

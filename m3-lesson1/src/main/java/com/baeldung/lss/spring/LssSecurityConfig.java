@@ -55,6 +55,9 @@ public class LssSecurityConfig {
         .logout().permitAll().logoutUrl("/logout")
 
         .and()
+        .rememberMe().key("lssAppKey")
+
+        .and()
         .csrf().disable();
         return http.build();
     } // @formatter:on
