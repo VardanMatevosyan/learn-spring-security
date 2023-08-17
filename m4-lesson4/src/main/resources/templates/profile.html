@@ -1,6 +1,10 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/web/thymeleaf/layout"
-	  xmlns:sec="http://www.thymeleaf.org/extras/spring-security" layout:decorator="layout">
+<html
+		xmlns:th="http://www.thymeleaf.org"
+		xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+		layout:decorate="~{layout}"
+		xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
 <head>
 	<title>Profile</title>
 </head>
@@ -8,20 +12,25 @@
 <h1 layout:fragment="header">Profile</h1>
 <div layout:fragment="content" class="container">
 
-	Current user name:
-	<span sec:authentication="principal.username">John</span>
+	<div sec:authorize="hasRole('ROLE_USER')">
+		Only user can see this message
+	</div>
 
-	<br/>
-	Current user name 2: <span sec:authentication="name">John</span>
+	<div sec:authorize="hasRole('ROLE_ADMIN')">
+		Only admin can see this message
+	</div>
 
-	<br/>
-	<br/>
-	Current user roles:
-	<span sec:authentication="principal.authorities">[ROLE_USER, ROLE_ADMIN]</span>
+	<div th:if="${#authorization.expression('hasRole(''ROLE_ADMIN'')')}">
+		Only admin can see this message
+	</div>
 
-	<br/>
-	Current user roles 2:
-	<span sec:authentication="authorities">[ROLE_USER, ROLE_ADMIN]</span>
+	<div sec:authorize-url="/user/delete/*">
+		Only users who can call "/user/delete/1" URL can see this message
+	</div>
+
+	<div sec:authorize-url="POST /user/delete/1">
+		Only users who can POST to /user/delete/1 will see this message
+	</div>
 
 </div>
 </body>
