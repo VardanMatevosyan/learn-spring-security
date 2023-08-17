@@ -1,5 +1,6 @@
 package com.baeldung.lss.spring;
 
+import com.baeldung.lss.spring.expression.CustomMethodSecurityConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -21,7 +22,13 @@ public class OnMethodAuthExpressionsStartLssApp {
     }
 
     public static void main(String[] args) throws Exception {
-        SpringApplication.run(new Class[] { OnMethodAuthExpressionsStartLssApp.class, LssSecurityConfig.class, LssWebMvcConfiguration.class }, args);
+        SpringApplication.run(
+            new Class[] {
+                OnMethodAuthExpressionsStartLssApp.class,
+                LssSecurityConfig.class,
+                LssWebMvcConfiguration.class,
+                CustomMethodSecurityConfig.class},
+            args);
     }
 
 }
