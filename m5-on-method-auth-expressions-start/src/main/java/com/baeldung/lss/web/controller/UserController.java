@@ -3,6 +3,7 @@ package com.baeldung.lss.web.controller;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -24,6 +25,7 @@ public class UserController {
 
     //
 
+    @PreAuthorize("isAdmin()")
     @RequestMapping
     public ModelAndView list() {
         Iterable<User> users = this.userRepository.findAll();
