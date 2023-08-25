@@ -19,7 +19,12 @@ public class LssApp6 {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(10, new SecureRandom());
+//        return new BCryptPasswordEncoder(10, new SecureRandom());
+//        Can be without  new SecureRandom() because BCryptPasswordEncoder creates SecureRandom internally
+        // 500 ms average is ok to log in
+//        return new BCryptPasswordEncoder(19); takes 40 seconds to login not recommended
+//        return new BCryptPasswordEncoder(12); takes 800 ms to login not bad but can be to long for the user
+        return new BCryptPasswordEncoder(11); // takes about 140 ms but sometimes about 400 ms to login which is preferred one
     }
 
     public static void main(String[] args) throws Exception {
