@@ -7,7 +7,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.Md4PasswordEncoder;
+//import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.password.StandardPasswordEncoder;
 
 @SpringBootApplication
 @ComponentScan("com.baeldung.lss")
@@ -15,9 +18,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @EntityScan("com.baeldung.lss.model")
 public class LssApp2 {
 
+//    @Bean
+//    public PasswordEncoder passwordEncoder() {
+//        return new BCryptPasswordEncoder();
+//    }
+
+    // testing encoder this is not recommended and deprecated in spring security
+    // this implementation is using SHA-256.
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new StandardPasswordEncoder();
     }
 
     public static void main(String[] args) throws Exception {

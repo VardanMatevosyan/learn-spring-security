@@ -1,5 +1,8 @@
 package com.baeldung.lss.spring;
 
+import com.baeldung.lss.model.User;
+import com.baeldung.lss.persistence.UserRepository;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,11 +12,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-
-import com.baeldung.lss.model.User;
-import com.baeldung.lss.persistence.UserRepository;
-
-import jakarta.annotation.PostConstruct;
 
 @EnableWebSecurity
 @Configuration
@@ -25,6 +23,8 @@ public class LssSecurityConfig {
     @Autowired
     private UserRepository userRepository;
 
+    // This PasswordEncoder is here and not declare here as a bean but in the separate class
+    // to avoid circular dependency since Spring Boot 2.6.0+
     private PasswordEncoder passwordEncoder;
 
     public LssSecurityConfig(PasswordEncoder passwordEncoder) {
@@ -32,7 +32,6 @@ public class LssSecurityConfig {
         this.passwordEncoder = passwordEncoder;
     }
 
-    //
 
     @PostConstruct
     private void saveTestUser() {
