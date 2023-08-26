@@ -13,8 +13,22 @@
 		<br />
 		<span id="temp"></span>
 		<br />
+		<a href="#" onclick="tryRunAs()">Generate Report As Super User</a>
+		<br />
 
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+
+		<script type="text/javascript">
+
+
+
+			function tryRunAs(){
+				$.get( "/runas" , function( data ) {
+					$("#temp").html(data);
+				});
+			}
+		</script>
+
 	</div>
 </body>
 </html>
