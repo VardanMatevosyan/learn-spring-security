@@ -21,10 +21,14 @@ class UserService implements IUserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private AsyncService asyncService;
+
     //
 
     @Override
     public Iterable<User> findAll() {
+        asyncService.asyncCall();
         return userRepository.findAll();
     }
 
