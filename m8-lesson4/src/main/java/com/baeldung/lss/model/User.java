@@ -35,6 +35,11 @@ public class User {
         super();
     }
 
+
+    public User(String username) {
+        this.email = username;
+    }
+
     public Long getId() {
         return this.id;
     }

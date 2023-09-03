@@ -1,5 +1,7 @@
 package com.baeldung.lss.web.controller;
 
+import com.baeldung.lss.service.ActiveUserService;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -23,6 +25,9 @@ import jakarta.validation.Valid;
 class UserController {
 
     @Autowired
+    private ActiveUserService activeUserService;
+
+    @Autowired
     private UserRepository userRepository;
 
     @Autowired
@@ -32,8 +37,8 @@ class UserController {
 
     @RequestMapping
     public ModelAndView list() {
-        Iterable<User> users = this.userRepository.findAll();
-        return new ModelAndView("tl/list", "users", users);
+        List<User> allActiveUsers = activeUserService.getAllActiveUsers();
+        return new ModelAndView("tl/list", "users", allActiveUsers);
     }
 
     @RequestMapping("{id}")
