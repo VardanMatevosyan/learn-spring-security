@@ -1,12 +1,12 @@
 package com.baeldung.lss.spring;
 
+import com.baeldung.lss.security.CustomAuthProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -20,7 +20,7 @@ import jakarta.annotation.PostConstruct;
 public class LssSecurityConfig {
 
     @Autowired
-    private UserDetailsService userDetailsService;
+    private CustomAuthProvider authenticationProvider;
 
     @Autowired
     private UserRepository userRepository;
@@ -44,7 +44,7 @@ public class LssSecurityConfig {
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {// @formatter:off
-        auth.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder);
+        auth.authenticationProvider(authenticationProvider);
     } // @formatter:on
 
     @Bean

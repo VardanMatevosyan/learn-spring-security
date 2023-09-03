@@ -1,8 +1,12 @@
 package com.baeldung.lss.spring;
 
+import com.baeldung.lss.security.LssUserDetailsService;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -25,6 +29,9 @@ public class LssSecurityConfig {
     @Autowired
     private CustomAuthenticationProvider customAuthenticationProvider;
 
+    @Autowired
+    private LssUserDetailsService userDetailsService;
+
     private PasswordEncoder passwordEncoder;
 
     public LssSecurityConfig(PasswordEncoder passwordEncoder) {
@@ -44,7 +51,17 @@ public class LssSecurityConfig {
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {// @formatter:off
-        auth.authenticationProvider(customAuthenticationProvider);
+        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
+        daoAuthenticationProvider.setPasswordEncoder(passwordEncoder);
+        daoAuthenticationProvider.setUserDetailsService(userDetailsService);
+
+        // Usually it is not required to create new provider manager with lis of providers
+        // but in very advance cases it may be the solution when we need to have full control
+        // and Spring Security provide us this possibility to do it.
+        ProviderManager providerManager = new ProviderManager(List.of(customAuthenticationProvider, daoAuthenticationProvider));
+        providerManager.setEraseCredentialsAfterAuthentication(false);
+        auth.parentAuthenticationManager(providerManager);
+        // also we can configure EraseCredentialsAfterAuthentication through the AuthenticationManagerBuilder object
     } // @formatter:on
 
     @Bean

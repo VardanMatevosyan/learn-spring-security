@@ -1,12 +1,12 @@
 package com.baeldung.lss.security;
 
-import java.util.ArrayList;
-
+import java.util.List;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -23,7 +23,8 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
         }
 
         if (doAuthenticationAgainstThirdPartySystem()) {
-            return new UsernamePasswordAuthenticationToken(name, password, new ArrayList<>());
+            return new UsernamePasswordAuthenticationToken(name, password,
+                List.of(new SimpleGrantedAuthority("ROLE_USER")));
         } else {
             throw new BadCredentialsException("Authentication against the third party system failed");
         }

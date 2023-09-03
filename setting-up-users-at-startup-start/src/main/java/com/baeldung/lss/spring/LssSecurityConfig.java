@@ -1,6 +1,7 @@
 package com.baeldung.lss.spring;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,9 +25,8 @@ import jakarta.annotation.PostConstruct;
 public class LssSecurityConfig {
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
+//    @Qualifier("fromUserBuilder") // in memory from bean approach
+    @Qualifier("fromPropFile") // in memory from property file approach
     private UserDetailsService userDetailsService;
 
     private PasswordEncoder passwordEncoder;
@@ -62,14 +62,6 @@ public class LssSecurityConfig {
         .csrf().disable();
         return http.build();
     } // @formatter:on
-
-    @PostConstruct
-    private void saveTestUser() {
-        final User user = new User();
-        user.setEmail("test@email.com");
-        user.setPassword(passwordEncoder.encode("password"));
-        userRepository.save(user);
-    }
 
     @Bean
     public SessionRegistry sessionRegistry() {
