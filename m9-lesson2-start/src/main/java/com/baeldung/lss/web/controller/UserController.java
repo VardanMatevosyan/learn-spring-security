@@ -1,9 +1,14 @@
 package com.baeldung.lss.web.controller;
 
+import com.baeldung.lss.persistence.RoleRepository;
+import com.baeldung.lss.web.model.Role;
+import java.util.Arrays;
+import java.util.Set;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -23,6 +28,12 @@ public class UserController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private RoleRepository roleRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     //
 
     @RequestMapping
@@ -41,6 +52,10 @@ public class UserController {
         if (result.hasErrors()) {
             return new ModelAndView("tl/form", "formErrors", result.getAllErrors());
         }
+
+        final Role userRole = roleRepository.findByName("ROLE_USER");
+        user.setRoles(Set.of(userRole));
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         user = this.userRepository.save(user);
         redirect.addFlashAttribute("globalMessage", "Successfully created a new user");
         return new ModelAndView("redirect:/user/{user.id}", "user.id", user.getId());
@@ -61,7 +76,7 @@ public class UserController {
     // the form
 
     @RequestMapping(params = "form", method = RequestMethod.GET)
-    @PreAuthorize("hasAnyAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('WRITE_PRIVILEGE')")
     public String createForm(@ModelAttribute User user) {
         return "tl/form";
     }
