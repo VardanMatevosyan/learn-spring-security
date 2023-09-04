@@ -1,5 +1,6 @@
 package com.baeldung.lss.spring;
 
+import com.baeldung.lss.security.LssUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -7,6 +8,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
@@ -15,11 +17,14 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class LssSecurityConfig {
 
-    private PasswordEncoder passwordEncoder;
+    private final PasswordEncoder passwordEncoder;
+    private final LssUserDetailsService userDetailsService;
 
-    public LssSecurityConfig(PasswordEncoder passwordEncoder) {
+    @Autowired
+    public LssSecurityConfig(PasswordEncoder passwordEncoder, LssUserDetailsService userDetailsService) {
         super();
         this.passwordEncoder = passwordEncoder;
+        this.userDetailsService = userDetailsService;
     }
 
     //
@@ -27,10 +32,7 @@ public class LssSecurityConfig {
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception { // @formatter:off 
         auth.
-            inMemoryAuthentication().passwordEncoder(passwordEncoder)
-            .withUser("user").password(passwordEncoder.encode("pass")).authorities("USER").and()
-            .withUser("admin").password(passwordEncoder.encode("pass")).authorities("ADMIN")
-            ;
+            userDetailsService(userDetailsService).passwordEncoder(passwordEncoder);
     } // @formatter:on
 
     @Bean
@@ -38,7 +40,7 @@ public class LssSecurityConfig {
         http
         .authorizeRequests()
             
-            .anyRequest().permitAll()
+            .anyRequest().authenticated()
         
         .and()
         .formLogin().

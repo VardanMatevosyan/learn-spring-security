@@ -10,7 +10,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @SpringBootApplication
-@ComponentScan("com.baeldung.lss.web")
+@ComponentScan("com.baeldung.lss")
 @EnableJpaRepositories("com.baeldung.lss")
 @EntityScan("com.baeldung.lss.web.model")
 public class LssApp2 {
