@@ -35,6 +35,8 @@ public class User {
 
     private String secret;
 
+    private String phone;
+
     //
 
     public User() {
@@ -90,6 +92,14 @@ public class User {
         this.secret = secret;
     }
 
+    public String getPhone() {
+        return this.phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
@@ -108,5 +118,4 @@ public class User {
             .append("]");
         return builder.toString();
     }
-
 }

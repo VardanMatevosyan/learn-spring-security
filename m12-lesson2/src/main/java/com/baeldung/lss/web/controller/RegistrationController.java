@@ -19,8 +19,6 @@ class RegistrationController {
     @Autowired
     private IUserService userService;
 
-    //
-
     @RequestMapping(value = "signup")
     public ModelAndView registrationForm() {
         return new ModelAndView("registrationPage", "user", new User());
@@ -38,6 +36,6 @@ class RegistrationController {
             return new ModelAndView("registrationPage", "user", user);
         }
 
-        return new ModelAndView("qrcode", "user", user);
+        return new ModelAndView("redirect:/login");
     }
 }

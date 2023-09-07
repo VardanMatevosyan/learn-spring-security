@@ -9,10 +9,15 @@ import java.util.Calendar;
 import com.baeldung.lss.validation.PasswordMatches;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
+import org.jboss.aerogear.security.otp.api.Base32;
 
 @Entity
 @PasswordMatches
 public class User {
+
+    public User() {
+        this.secret = Base32.random();
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,6 +32,16 @@ public class User {
 
     @NotEmpty(message = "Password confirmation is required.")
     private String passwordConfirmation;
+
+    private String secret;
+
+    public String getSecret() {
+        return secret;
+    }
+
+    public void setSecret(String secret) {
+        this.secret = secret;
+    }
 
     private Calendar created = Calendar.getInstance();
 
