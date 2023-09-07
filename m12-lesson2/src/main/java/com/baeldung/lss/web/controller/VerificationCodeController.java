@@ -1,43 +1,106 @@
 package com.baeldung.lss.web.controller;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import static java.util.Objects.isNull;
 
 import com.baeldung.lss.persistence.UserRepository;
 import com.baeldung.lss.web.model.User;
+import com.sinch.xms.ApiConnection;
+import com.sinch.xms.SinchSMSApi;
+import com.sinch.xms.api.MtBatchTextSmsCreate;
+import com.sinch.xms.api.MtBatchTextSmsResult;
+import java.io.IOException;
+import org.jboss.aerogear.security.otp.Totp;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.client.RestTemplate;
 
 @Controller
 public class VerificationCodeController {
 
-    public static String QR_PREFIX = "https://chart.googleapis.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=";
-    public static String APP_NAME = "LearnSpringSecurity";
+  @Autowired
+  private UserRepository userRepository;
+//
+//  @Autowired
+//  private RestTemplate restTemplate;
 
-    @Autowired
-    private UserRepository userRepository;
+  @Value("${sinch.sender}")
+  private String senderNumber;
+  @Value("${sinch.service.plan.id}")
+  private String sinchServicePlanId;
+  @Value("${sinch.token}")
+  private String sinchToken;
 
-    @RequestMapping(value = "/code", method = RequestMethod.GET)
-    @ResponseBody
-    public Map<String, String> getQRUrl(@RequestParam("username") final String username) throws UnsupportedEncodingException {
-        final Map<String, String> result = new HashMap<String, String>();
-        final User user = userRepository.findByEmail(username);
-        if (user == null) {
-            result.put("url", "");
-        } else {
-            result.put("url", generateQRUrl(user.getSecret(), user.getEmail()));
-        }
-        return result;
+  @RequestMapping(value = "/code", method = RequestMethod.GET)
+  @ResponseStatus(HttpStatus.OK)
+  public void getCode(Authentication auth) throws IOException, InterruptedException {
+    String name = auth.getName();
+    User user = userRepository.findByEmail(name);
+    if (isNull(user)) {
+      return;
     }
+    sendCode(user);
+  }
 
-    private String generateQRUrl(String secret, String username) throws UnsupportedEncodingException {
-        return QR_PREFIX + URLEncoder.encode(String.format("otpauth://totp/%s:%s?secret=%s&issuer=%s", APP_NAME, username, secret, APP_NAME), "UTF-8");
+  // this is for testing it should be in the separate service
+  private void sendCode(User user) {
+    String code = generateTotpCode(user);
+    String body = "The verification code is " + code;
+    try (ApiConnection conn = ApiConnection
+        .builder()
+        .servicePlanId(sinchServicePlanId)
+        .token(sinchToken)
+        .start()) {
+
+      MtBatchTextSmsCreate message = SinchSMSApi
+          .batchTextSms()
+          .sender(senderNumber)
+          .addRecipient(new String[]{user.getPhone()})
+          .body(body)
+          .build();
+
+      MtBatchTextSmsResult batch = conn.createBatch(message);
+      System.out.println("Body " + batch.body());
+    } catch (Exception e) {
+      System.out.println(e.getMessage());
     }
+  }
+
+  // send token using restTemplate to sinch api
+
+//  private void sendCode(User user) throws JsonProcessingException {
+//    String code = generateTotpCode(user);
+//    String bodyCode = "The verification code is " + code;
+//    String url = "https://sms.api.sinch.com/xms/v1/" + sinchServicePlanId + "/batches";
+//    URI uri = URI.create(url);
+//
+//    VerificationCodeDto verificationCodeDto = new VerificationCodeDto();
+//    verificationCodeDto.setFrom(senderNumber);
+//    verificationCodeDto.setTo(List.of(user.getPhone()));
+//    verificationCodeDto.setBody(bodyCode);
+//
+//    ObjectMapper objectMapper = new ObjectMapper();
+//    String body = objectMapper.writeValueAsString(verificationCodeDto);
+//
+//    MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+//    headers.add("Authorization", "Bearer " + sinchToken);
+//    headers.add("Content-Type", "application/json");
+//
+//    HttpEntity<String> request = new HttpEntity<>(body, headers);
+//
+//    restTemplate.postForEntity(uri, request, String.class);
+//
+
+
+//  }
+
+  private static String generateTotpCode(User user) {
+    return new Totp(user.getSecret()).now();
+  }
+
 }

@@ -18,37 +18,41 @@ import java.util.Arrays;
 @Component
 public class CustomAuthenticationProvider implements AuthenticationProvider {
 
-    @Autowired
-    private UserRepository userRepository;
+  @Autowired
+  private UserRepository userRepository;
 
-    @Autowired
-    private PasswordEncoder encoder;
+  @Autowired
+  private PasswordEncoder encoder;
 
-    @Override
-    public Authentication authenticate(Authentication auth) throws AuthenticationException {
-        final String username = auth.getName();
-        final String password = auth.getCredentials()
-                .toString();
-        final String verificationCode = ((CustomWebAuthenticationDetails) auth.getDetails()).getVerificationCode();
-        final User user = userRepository.findByEmail(username);
-        if ((user == null) || !encoder.matches(password, user.getPassword())) {
-            throw new BadCredentialsException("Invalid username or password");
-        }
-
-        final Totp totp = new Totp(user.getSecret());
-        try {
-            if (!totp.verify(verificationCode)) {
-                throw new BadCredentialsException("Invalid verfication code");
-            }
-        } catch (final Exception e) {
-            throw new BadCredentialsException("Invalid verfication code");
-        }
-
-        return new UsernamePasswordAuthenticationToken(user, password, Arrays.asList(new SimpleGrantedAuthority("ROLE_USER")));
+  @Override
+  public Authentication authenticate(Authentication auth) throws AuthenticationException {
+    final String username = auth.getName();
+    final String password = auth.getCredentials().toString();
+    final User user = userRepository.findByEmail(username);
+    if ((user == null) || !encoder.matches(password, user.getPassword())) {
+      throw new BadCredentialsException("Invalid username or password");
     }
 
-    @Override
-    public boolean supports(Class<?> authentication) {
-        return authentication.equals(UsernamePasswordAuthenticationToken.class);
+    if (auth.getDetails() instanceof CustomWebAuthenticationDetails) {
+      String verificationCode = ((CustomWebAuthenticationDetails) auth.getDetails()).getVerificationCode();
+      final Totp totp = new Totp(user.getSecret());
+      try {
+        if (!totp.verify(verificationCode)) {
+          throw new BadCredentialsException("Invalid verification code");
+        }
+      } catch (final Exception e) {
+        throw new BadCredentialsException("Invalid verification code");
+      }
+      return new UsernamePasswordAuthenticationToken(user, password,
+          Arrays.asList(new SimpleGrantedAuthority("ROLE_USER")));
+    } else {
+      return new UsernamePasswordAuthenticationToken(user.getEmail(), password,
+          Arrays.asList(new SimpleGrantedAuthority("ROLE_TEMP_USER")));
     }
+  }
+
+  @Override
+  public boolean supports(Class<?> authentication) {
+    return authentication.equals(UsernamePasswordAuthenticationToken.class);
+  }
 }
