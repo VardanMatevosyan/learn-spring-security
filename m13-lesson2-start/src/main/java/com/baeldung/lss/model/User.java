@@ -32,6 +32,23 @@ public class User {
     @NotEmpty(message = "Password confirmation is required.")
     private String passwordConfirmation;
 
+    @NotEmpty(message = "Tenant is required.")
+    private String tenant;
+
+    public User(String username, String password, String tenant) {
+        this.email = username;
+        this.password = password;
+        this.tenant = tenant;
+    }
+
+    public String getTenant() {
+        return tenant;
+    }
+
+    public void setTenant(String tenant) {
+        this.tenant = tenant;
+    }
+
     public User() {
         super();
     }
