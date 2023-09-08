@@ -1,11 +1,12 @@
 package com.baeldung.lss.spring;
 
+import com.baeldung.lss.security.LssAuthenticationDetailSource;
+import com.baeldung.lss.security.LssDaoAuthenticationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -14,7 +15,10 @@ import org.springframework.security.web.SecurityFilterChain;
 public class LssSecurityConfig {
 
     @Autowired
-    private UserDetailsService userDetailsService;
+    private LssDaoAuthenticationProvider daoAuthenticationProvider;
+
+    @Autowired
+    private LssAuthenticationDetailSource lssAuthenticationDetailSource;
 
     public LssSecurityConfig() {
         super();
@@ -24,7 +28,7 @@ public class LssSecurityConfig {
 
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {// @formatter:off
-        auth.userDetailsService(userDetailsService);
+        auth.authenticationProvider(daoAuthenticationProvider);
     } // @formatter:on
 
     @Bean
@@ -38,6 +42,7 @@ public class LssSecurityConfig {
         .formLogin().
             loginPage("/login").permitAll().
             loginProcessingUrl("/doLogin")
+            .authenticationDetailsSource(lssAuthenticationDetailSource)
 
         .and()
         .logout().permitAll().logoutUrl("/logout")
@@ -48,9 +53,5 @@ public class LssSecurityConfig {
         return http.build();
     } // @formatter:on
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(10);
-    }
 
 }

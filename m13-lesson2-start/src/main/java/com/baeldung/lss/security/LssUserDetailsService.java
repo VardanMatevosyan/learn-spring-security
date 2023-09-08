@@ -28,7 +28,14 @@ public class LssUserDetailsService implements UserDetailsService {
         if (user == null) {
             throw new UsernameNotFoundException("No user found with username: " + email);
         }
-        return new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(), true, true, true, true, getAuthorities(ROLE_USER));
+        return new LssPrincipalUser(user.getEmail(),
+            user.getPassword(),
+            true,
+            true,
+            true,
+            true,
+            getAuthorities(ROLE_USER),
+            user.getTenant());
     }
 
     private Collection<? extends GrantedAuthority> getAuthorities(String role) {
