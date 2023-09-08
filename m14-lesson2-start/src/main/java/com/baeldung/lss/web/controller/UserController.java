@@ -8,6 +8,7 @@ import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -93,6 +94,7 @@ public class UserController {
 
     @DeleteMapping("delete/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN')")
     public Mono<Void> delete(@PathVariable("id") Long id) {
         this.userRepository.deleteUser(id);
         return Mono.empty();
