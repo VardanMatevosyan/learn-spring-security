@@ -1,11 +1,13 @@
 package com.baeldung.lsso.web.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,7 +47,9 @@ public class ProjectController {
     }
 
     @GetMapping
-    public Collection<ProjectDto> findAll() {
+    public Collection<ProjectDto> findAll(HttpServletRequest request) {
+        System.out.println("request is " + request.getHeader("Authorization"));
+        System.out.println("====================================");
         Iterable<Project> projects = this.projectService.findAll();
         List<ProjectDto> projectDtos = new ArrayList<>();
         projects.forEach(p -> projectDtos.add(convertToDto(p)));
