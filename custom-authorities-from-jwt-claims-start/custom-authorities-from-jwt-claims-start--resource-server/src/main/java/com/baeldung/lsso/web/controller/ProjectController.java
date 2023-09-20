@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Objects;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -45,7 +47,11 @@ public class ProjectController {
     }
 
     @GetMapping
-    public Collection<ProjectDto> findAll() {
+    public Collection<ProjectDto> findAll(Authentication authentication) {
+        // print all authorities to the console
+        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+        authorities.forEach(System.out::println);
+
         Iterable<Project> projects = this.projectService.findAll();
         List<ProjectDto> projectDtos = new ArrayList<>();
         projects.forEach(p -> projectDtos.add(convertToDto(p)));
