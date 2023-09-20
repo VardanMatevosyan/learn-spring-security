@@ -4,13 +4,16 @@ server:
     context-path: /lsso-resource-server
 
 ####### resource server configuration properties
+oauth2:
+  auth-servers:
+    baeldung:
+        issuer-uri: http://localhost:8083/auth/realms/baeldung
+        jwk-set-url: http://localhost:8083/auth/realms/baeldung/protocol/openid-connect/certs
+    tenant2:
+        issuer-uri: http://localhost:8084/auth/realms/tenant2
+        jwk-set-url: http://localhost:8084/auth/realms/tenant2/protocol/openid-connect/certs
+
 spring:
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://localhost:8083/auth/realms/baeldung
-          jwk-set-uri: http://localhost:8083/auth/realms/baeldung/protocol/openid-connect/certs
   datasource:
     username: sa
     url: jdbc:h2:mem:testdb;DB_CLOSE_ON_EXIT=FALSE;
