@@ -8,6 +8,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.annotation.RegisteredOAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.web.reactive.function.client.ServletOAuth2AuthorizedClientExchangeFilterFunction;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -31,6 +34,22 @@ public class ProjectClientController {
     public String getProjects(Model model) {
         List<ProjectModel> projects = this.webClient.get()
             .uri(projectApiUrl)
+            .retrieve()
+            .bodyToMono(new ParameterizedTypeReference<List<ProjectModel>>() {
+            })
+            .block();
+        model.addAttribute("projects", projects);
+        return "projects";
+    }
+
+    @GetMapping("/projects/just/test")
+    public String getProjectsToTest(
+        @RegisteredOAuth2AuthorizedClient("custom") OAuth2AuthorizedClient oAuth2AuthorizedClient,
+        Model model) {
+        List<ProjectModel> projects = this.webClient.get()
+            .uri(projectApiUrl)
+            .attributes(ServletOAuth2AuthorizedClientExchangeFilterFunction
+                .oauth2AuthorizedClient(oAuth2AuthorizedClient))
             .retrieve()
             .bodyToMono(new ParameterizedTypeReference<List<ProjectModel>>() {
             })
