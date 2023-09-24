@@ -7,8 +7,8 @@ spring:
         registration:
           github:
             scope: user:email, read:user
-            client-id: 0b6c373a600c4856b03d
-            client-secret: e66c3d38ae3f5d13580eff6d38fe2fffc7f249de
+            client-id: client-id
+            client-secret: client-secret
     
 server: 
   port: 8082
