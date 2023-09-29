@@ -1,16 +1,22 @@
 package com.baeldung.lsso.spring;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.client.web.reactive.function.client.ServletOAuth2AuthorizedClientExchangeFilterFunction;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
 public class ClientSecurityConfig {
+
+    @Autowired
+    private ClientRegistrationRepository clientRegistrationRepository;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {// @formatter:off
@@ -19,9 +25,15 @@ public class ClientSecurityConfig {
 	            .anyRequest().authenticated())
             .oauth2Login()
             .and()
-            .logout().logoutSuccessUrl("/");
+            .logout(logoutBuilder -> logoutBuilder.logoutSuccessHandler(oidcLogoutSuccessHandler()));
         return http.build();
     }// @formatter:on
+
+    private LogoutSuccessHandler oidcLogoutSuccessHandler() {
+        var handler = new OidcClientInitiatedLogoutSuccessHandler(clientRegistrationRepository);
+        handler.setPostLogoutRedirectUri("{baseUrl}");
+        return handler;
+    }
 
     @Bean
     WebClient webClient(ClientRegistrationRepository clientRegistrationRepository, OAuth2AuthorizedClientRepository authorizedClientRepository) {

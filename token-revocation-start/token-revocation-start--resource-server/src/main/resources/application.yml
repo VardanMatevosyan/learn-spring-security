@@ -8,9 +8,10 @@ spring:
   security:
     oauth2:
       resourceserver:
-        jwt:
-          issuer-uri: http://localhost:8083/auth/realms/baeldung
-          jwk-set-uri: http://localhost:8083/auth/realms/baeldung/protocol/openid-connect/certs
+        opaque-token:
+          introspection-uri: http://localhost:8083/auth/realms/baeldung/protocol/openid-connect/token/introspect
+          client-id: lssoClient
+          client-secret: lssoSecret
   datasource:
     username: sa
     url: jdbc:h2:mem:testdb;DB_CLOSE_ON_EXIT=FALSE;
