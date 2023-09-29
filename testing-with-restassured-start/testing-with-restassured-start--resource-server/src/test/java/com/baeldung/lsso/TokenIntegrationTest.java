@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 
 import com.baeldung.lsso.web.dto.ProjectDto;
@@ -21,11 +22,107 @@ public class TokenIntegrationTest {
     private static final String CONNECT_TOKEN = AUTH_SERVICE_BASE_URL + "/protocol/openid-connect/token";
     private static final String SERVER_API_PROJECTS = "http://localhost:8081/lsso-resource-server/api/projects";
 
+
+    @Test
+    public void givenAuthorizationCodeGrant_whenUseToken_thenSuccess() {
+        Response tokenResponse = getTokenInformation();
+
+        String accessToken = tokenResponse.jsonPath()
+            .getString("access_token");
+
+        assertThat(accessToken).isNotBlank();
+
+
+        Response protectedDataResponse = RestAssured.given()
+            .auth()
+            .oauth2(accessToken)
+            .get(SERVER_API_PROJECTS);
+
+        assertThat(HttpStatus.OK.value()).isEqualTo(protectedDataResponse.getStatusCode());
+
+        List<ProjectDto> projects = protectedDataResponse.getBody().as(List.class);
+        assertThat(3).isEqualTo(projects.size());
+
+    }
+
+    @Test
+    public void givenAuthorizationCodeGrant_whenUseRefreshedToken_thenSuccess() {
+        Response response = getTokenInformation();
+
+        String firstAccessToken = response.jsonPath()
+            .getString("access_token");
+
+        String refreshToken = response.jsonPath()
+            .getString("refresh_token");
+        assertThat(refreshToken).isNotBlank();
+
+
+        final Map<String, String> paramsRefresh = new HashMap<>();
+        paramsRefresh.put("grant_type", "refresh_token");
+        paramsRefresh.put("client_id", "lssoClient");
+        paramsRefresh.put("refresh_token", refreshToken);
+        paramsRefresh.put("client_secret", "lssoSecret");
+        Response refreshResponse = RestAssured.given()
+            .formParams(paramsRefresh)
+            .post(CONNECT_TOKEN);
+
+        String refreshedToken = refreshResponse.jsonPath()
+            .getString("access_token");
+        assertThat(refreshedToken).isNotBlank();
+
+
+        Response resourceServerResponseWithRefreshedToken = RestAssured.given()
+            .auth()
+            .oauth2(refreshedToken)
+            .get(SERVER_API_PROJECTS);
+
+        Response resourceServerResponseWithFirstAccessToken = RestAssured.given()
+            .auth()
+            .oauth2(firstAccessToken)
+            .get(SERVER_API_PROJECTS);
+
+        assertThat(HttpStatus.OK.value()).isEqualTo(resourceServerResponseWithRefreshedToken.getStatusCode());
+        assertThat(HttpStatus.OK.value()).isEqualTo(resourceServerResponseWithFirstAccessToken.getStatusCode());
+
+        List<ProjectDto> projects = resourceServerResponseWithRefreshedToken.getBody().as(List.class);
+        List<ProjectDto> projectsWithFirstAccessToken = resourceServerResponseWithFirstAccessToken.getBody().as(List.class);
+        assertThat(3).isEqualTo(projects.size());
+        assertThat(3).isEqualTo(projectsWithFirstAccessToken.size());
+
+    }
+
+    private Response getTokenInformation() {
+        Response loginAuthServerPageResponse = RestAssured.get(AUTH_SERVICE_AUTHORIZE_URL);
+        Response afterSubmitingUserCredentialResponse = authenticateInAuthorizationServer(loginAuthServerPageResponse);
+
+        assertThat(HttpStatus.FOUND.value()).isEqualTo(afterSubmitingUserCredentialResponse.getStatusCode());
+
+        String location = afterSubmitingUserCredentialResponse.getHeader(HttpHeaders.LOCATION);
+        String code = location.split("code=")[1].split("&")[0];
+
+        Map<String, String> params = new HashMap<>();
+        params.put("grant_type", "authorization_code");
+        params.put("code", code);
+        params.put("client_id", "lssoClient");
+        params.put("redirect_uri", REDIRECT_URL);
+        params.put("client_secret", "lssoSecret");
+
+        return RestAssured.given()
+            .formParams(params)
+            .post(CONNECT_TOKEN);
+    }
+
     private Response authenticateInAuthorizationServer(Response response) {
         String authSessionId = response.getCookie("AUTH_SESSION_ID");
-        String kcPostAuthenticationUrl = response.asString().split("action=\"")[1].split("\"")[0].replace("&amp;", "&");
+        String kcPostAuthenticationUrl = response.asString()
+            .split("action=\"")[1]
+            .split("\"")[0]
+            .replace("&amp;", "&");
 
-        response = RestAssured.given().cookie("AUTH_SESSION_ID", authSessionId).formParams("username", "john@test.com", "password", "123").post(kcPostAuthenticationUrl);
+        response = RestAssured.given()
+            .cookie("AUTH_SESSION_ID", authSessionId)
+            .formParams("username", "john@test.com", "password", "123")
+            .post(kcPostAuthenticationUrl);
 
         return response;
     }

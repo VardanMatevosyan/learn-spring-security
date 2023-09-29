@@ -16,6 +16,7 @@ spring:
             user-info-uri: http://localhost:8083/auth/realms/baeldung/protocol/openid-connect/userinfo
             user-name-attribute: preferred_username
             jwk-set-uri: http://localhost:8083/auth/realms/baeldung/protocol/openid-connect/certs
+            issuer-uri: http://localhost:8083/auth/realms/baeldung
 
   thymeleaf:
     cache: false
