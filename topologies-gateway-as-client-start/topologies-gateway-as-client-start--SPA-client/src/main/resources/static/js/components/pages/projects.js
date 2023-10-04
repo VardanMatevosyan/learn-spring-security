@@ -15,7 +15,7 @@ const Projects = () => {
 
   const refreshProjects = () => {
     axios
-      .get(RESOURCE_CONFIGS.GET_PROJECTS_URL)
+      .get(RESOURCE_CONFIGS.GET_PROJECTS_URL, { withCredentials: true, })
       .then((response) => {
         setProjects(response.data);
       })
@@ -29,7 +29,8 @@ const Projects = () => {
     axios
       .post(
         RESOURCE_CONFIGS.SAVE_PROJECT_URL,
-        { name: newProjectName }
+        { name: newProjectName },
+        { withCredentials: true }
       )
       .then(() => {
         refreshProjects();

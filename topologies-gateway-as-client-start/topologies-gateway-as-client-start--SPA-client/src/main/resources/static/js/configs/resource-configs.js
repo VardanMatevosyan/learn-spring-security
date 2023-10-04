@@ -5,7 +5,7 @@ const RESOURCE_CONFIGS = {
 };
 
 const LOGIN_CONFIGS = {
-    LOGIN_URL: "",
+    LOGIN_URL: "http://localhost:8084/oauth2/authorization/custom",
 };
 
 window.RESOURCE_CONFIGS = RESOURCE_CONFIGS;

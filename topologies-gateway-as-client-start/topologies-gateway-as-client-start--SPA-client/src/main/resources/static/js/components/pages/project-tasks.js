@@ -9,7 +9,7 @@ const Tasks = ({ project }) => {
 
   const refreshTasks = () => {
     axios
-      .get(`${RESOURCE_CONFIGS.GET_TASKS_URL}?projectId=${project.id}`)
+      .get(`${RESOURCE_CONFIGS.GET_TASKS_URL}?projectId=${project.id}`, { withCredentials: true, })
       .then((response) => {
         setTasks(response.data);
       })
